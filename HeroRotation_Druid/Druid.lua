@@ -242,6 +242,7 @@ Spell.Druid.Restoration = {
   Pool                                  = Spell(999910)
 };
 
+-- Items
 if not Item.Druid then Item.Druid = {} end
 Item.Druid.Balance = {
   -- Potion/Trinkets
