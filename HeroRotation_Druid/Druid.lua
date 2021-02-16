@@ -242,17 +242,15 @@ Spell.Druid.Restoration = {
   Pool                                  = Spell(999910)
 };
 
--- Items
 if not Item.Druid then Item.Druid = {} end
 Item.Druid.Balance = {
   -- Potion/Trinkets
-  PotionofUnbridledFury            = Item(169299),
   PotionofSpectralIntellect             = Item(307096),
   EmpyrealOrdinance                     = Item(180117),
   InscrutableQuantumDevice              = Item(179350),
   SoullettingRuby                       = Item(178809)
   -- Other "On-Use"
-}
+} 
 
 Item.Druid.Feral = {
   PotionofFocusedResolve                = Item(168506),
