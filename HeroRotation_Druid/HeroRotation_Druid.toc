@@ -1,7 +1,7 @@
-## Interface: 80300
+## Interface: 90002
 
-## Title: Hero|cFFA330C9Rotation|r [|cFFFF7D0ADruid|r]
-## Author: Aethys, KutiKuti
+## Title: Hero|cFFA330C9Rotation|r [|cFFFF7C0ADruid|r]
+## Author: Cilraaz
 ## Notes: Hero Rotation - Druid Module.
 
 ## DefaultState: Enabled
@@ -10,9 +10,6 @@
 
 Settings.lua
 Druid.lua
-Balance.lua
-Feral.lua
-Guardian.lua
-Restoration.lua
 Events.lua
+Balance.lua
 Overrides.lua
