@@ -139,7 +139,7 @@ local function EvaluateCycleSurrenderToMadness206(TargetUnit)
 end
 
 local function EvaluateCycleVoidTorrent208(TargetUnit)
-  return (DotsUp(TargetUnit, false) and TargetUnit:TimeToDie() > 3 and (Player:BuffDown(S.VoidformBuff) or Player:BuffRemains(S.VoidformBuff) < S.VoidBolt:CooldownRemains()) and EnemiesCount10ySplash < (5 + (6 * num(S.TwistofFate:IsAvailable()))))
+  return (DotsUp(TargetUnit, false) and TargetUnit:TimeToDie() > 3 and (Player:BuffDown(S.VoidformBuff) or Player:BuffRemains(S.VoidformBuff) < S.VoidBolt:CooldownRemains()) and S.VampiricTouchDebuff:AuraActiveCount() >= EnemiesCount10ySplash and EnemiesCount10ySplash < (5 + (6 * num(S.TwistofFate:IsAvailable()))))
 end
 
 local function EvaluateCycleVampiricTouch214(TargetUnit)
@@ -372,7 +372,7 @@ local function Main()
   end
   -- shadow_word_death,target_if=(target.health.pct<20&spell_targets.mind_sear<4)|(pet.fiend.active&runeforge.shadowflame_prism.equipped)
   if S.ShadowWordDeath:IsCastable() then
-    if Everyone.CastCycle(S.ShadowWordDeath, Enemies40y, EvaluateCycleShadowWordDeath204, not Target:IsSpellInRange(S.ShadowWordDeath)) then return "shadow_word_death 104"; end
+    if Everyone.CastCycle(S.ShadowWordDeath, Enemies40y, EvaluateCycleShadowWordDeath204, not Target:IsSpellInRange(S.ShadowWordDeath), Settings.Shadow.GCDasOffGCD.ShadowWordDeath) then return "shadow_word_death 104"; end
   end
   -- surrender_to_madness,target_if=target.time_to_die<25&buff.voidform.down
   if S.SurrenderToMadness:IsCastable() then
@@ -382,13 +382,13 @@ local function Main()
   if S.VoidTorrent:IsCastable() then
     if Everyone.CastCycle(S.VoidTorrent, Enemies40y, EvaluateCycleVoidTorrent208, not Target:IsSpellInRange(S.VoidTorrent)) then return "void_torrent 107"; end
   end
-  -- mindbender,if=dot.vampiric_touch.ticking&(talent.searing_nightmare.enabled&spell_targets.mind_sear>variable.mind_sear_cutoff|dot.shadow_word_pain.ticking)
-  if S.Mindbender:IsCastable() and CDsON() and (Target:DebuffUp(S.VampiricTouchDebuff) and (S.SearingNightmare:IsAvailable() and EnemiesCount10ySplash > VarMindSearCutoff or Target:DebuffUp(S.ShadowWordPainDebuff))) then
+  -- mindbender,if=dot.vampiric_touch.ticking&(talent.searing_nightmare.enabled&spell_targets.mind_sear>variable.mind_sear_cutoff|dot.shadow_word_pain.ticking)&(!runeforge.shadowflame_prism.equipped|active_dot.vampiric_touch==spell_targets.vampiric_touch)
+  if S.Mindbender:IsCastable() and CDsON() and (Target:DebuffUp(S.VampiricTouchDebuff) and (S.SearingNightmare:IsAvailable() and EnemiesCount10ySplash > VarMindSearCutoff or Target:DebuffUp(S.ShadowWordPainDebuff)) and (not ShadowflamePrismEquipped or S.VampiricTouchDebuff:AuraActiveCount() >= EnemiesCount10ySplash)) then
     if Cast(S.Mindbender, Settings.Shadow.GCDasOffGCD.Mindbender, nil, not Target:IsSpellInRange(S.Mindbender)) then return "shadowfiend/mindbender 108"; end
   end
   -- shadow_word_death,if=runeforge.painbreaker_psalm.equipped&variable.dots_up&target.time_to_pct_20>(cooldown.shadow_word_death.duration+gcd)
   if S.ShadowWordDeath:IsReady() and (PainbreakerEquipped and VarDotsUp and Target:TimeToX(20) > S.ShadowWordDeath:Cooldown() + Player:GCD()) then
-    if Cast(S.ShadowWordDeath, nil, nil, not Target:IsSpellInRange(S.ShadowWordDeath)) then return "shadow_word_death 112"; end
+    if Cast(S.ShadowWordDeath, Settings.Shadow.GCDasOffGCD.ShadowWordDeath, nil, not Target:IsSpellInRange(S.ShadowWordDeath)) then return "shadow_word_death 112"; end
   end
   -- shadow_crash,if=raid_event.adds.in>10
   if S.ShadowCrash:IsCastable() then
@@ -406,8 +406,8 @@ local function Main()
   if S.DevouringPlague:IsReady() and (TalbadarEquipped and VarDotsUp and not VarAllDotsUp) then
     if Cast(S.DevouringPlague, nil, nil, not Target:IsSpellInRange(S.DevouringPlague)) then return "devouring_plague 121"; end
   end
-  -- mind_blast,if=variable.dots_up&raid_event.movement.in>cast_time+0.5&(spell_targets.mind_sear<4&!talent.misery.enabled|spell_targets.mind_sear<6&talent.misery.enabled)
-  if S.MindBlast:IsCastable() and (VarDotsUp and (EnemiesCount10ySplash < 4 and not S.Misery:IsAvailable() or EnemiesCount10ySplash < 6 and S.Misery:IsAvailable())) then
+  -- mind_blast,if=variable.dots_up&raid_event.movement.in>cast_time+0.5&(pet.fiend.active&runeforge.shadowflame_prism.equipped|spell_targets.mind_sear<4&!talent.misery.enabled|spell_targets.mind_sear<6&talent.misery.enabled)
+  if S.MindBlast:IsCastable() and (VarDotsUp and (S.Mindbender:TimeSinceLastCast() <= 15 and ShadowflamePrismEquipped or EnemiesCount10ySplash < 4 and not S.Misery:IsAvailable() or EnemiesCount10ySplash < 6 and S.Misery:IsAvailable())) then
     if Cast(S.MindBlast, nil, nil, not Target:IsSpellInRange(S.MindBlast)) then return "mind_blast 122"; end
   end
   -- vampiric_touch,target_if=refreshable&target.time_to_die>6|(talent.misery.enabled&dot.shadow_word_pain.refreshable)|buff.unfurling_darkness.up
@@ -432,7 +432,7 @@ local function Main()
   end
   -- shadow_word_death
   if S.ShadowWordDeath:IsCastable() then
-    if Cast(S.ShadowWordDeath, nil, nil, not Target:IsSpellInRange(S.ShadowWordDeath)) then return "shadow_word_death 133"; end
+    if Cast(S.ShadowWordDeath, Settings.Shadow.GCDasOffGCD.ShadowWordDeath, nil, not Target:IsSpellInRange(S.ShadowWordDeath)) then return "shadow_word_death 133"; end
   end
   -- shadow_word_pain
   if S.ShadowWordPain:IsCastable() then
@@ -515,7 +515,7 @@ local function APL()
 end
 
 local function Init()
-
+  S.VampiricTouchDebuff:RegisterAuraTracking()
 end
 
 HR.SetAPL(258, APL, Init)
